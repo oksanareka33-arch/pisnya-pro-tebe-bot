@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: pisnya-pro-tebe-bot
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    healthCheckPath: /
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_CHAT_ID
+        sync: false
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: EXPRESS_STARS
+        value: "250"
+      - key: PREMIUM_STARS
+        value: "650"
