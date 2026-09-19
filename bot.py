@@ -345,10 +345,29 @@ async def cancel(callback: CallbackQuery, state: FSMContext) -> None:
 
 @router.callback_query(F.data == "examples")
 async def examples(callback: CallbackQuery) -> None:
+    example_links = [
+        "https://vm.tiktok.com/ZN86VmECA/",
+        "https://vm.tiktok.com/ZN86VyfMQ/",
+        "https://vm.tiktok.com/ZN86VmUjW/",
+        "https://vm.tiktok.com/ZN86VxAU5/",
+        "https://vm.tiktok.com/ZN86VSAVm/",
+        "https://vm.tiktok.com/ZN86VyoNg/",
+        "https://vm.tiktok.com/ZN86VxABE/",
+        "https://vm.tiktok.com/ZN86VATFs/",
+        "https://vm.tiktok.com/ZN86VfjDc/",
+        "https://vm.tiktok.com/ZN86VSrNj/",
+        "https://vm.tiktok.com/ZN86V4rrm/",
+    ]
+    buttons = [
+        InlineKeyboardButton(text=f"🎵 Приклад {index}", url=url)
+        for index, url in enumerate(example_links, start=1)
+    ]
+    rows = [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
+    rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="home")])
     await safe_edit(
         callback.message,
-        "🎧 Приклади пісень незабаром з’являться тут.",
-        InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="⬅️ Назад", callback_data="home")]]),
+        "🎧 Оберіть приклад персональної пісні:",
+        InlineKeyboardMarkup(inline_keyboard=rows),
     )
     await callback.answer()
 
