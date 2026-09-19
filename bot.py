@@ -91,8 +91,9 @@ def main_menu() -> InlineKeyboardMarkup:
 
 def package_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=f"⚡ Експрес — {EXPRESS_STARS} ⭐", callback_data="package:express")],
-        [InlineKeyboardButton(text=f"💎 Преміум — {PREMIUM_STARS} ⭐", callback_data="package:premium")],
+        [InlineKeyboardButton(text="⚡ Експрес-пісня — 300 грн", callback_data="package:express")],
+        [InlineKeyboardButton(text="💎 Преміум-пісня — 600 грн", callback_data="package:premium")],
+        [InlineKeyboardButton(text="🎬 Пісня + відеомонтаж — 1500 грн", callback_data="package:video")],
         [InlineKeyboardButton(text="⬅️ Назад", callback_data="home")],
     ])
 
@@ -105,7 +106,7 @@ def skip_keyboard() -> InlineKeyboardMarkup:
 
 def confirm_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ Усе правильно — оплатити", callback_data="pay")],
+        [InlineKeyboardButton(text="✅ Надіслати замовлення автору", callback_data="submit")],
         [InlineKeyboardButton(text="❌ Скасувати", callback_data="cancel")],
     ])
 
@@ -141,8 +142,9 @@ async def choose_package(callback: CallbackQuery) -> None:
     await safe_edit(
         callback.message,
         "Оберіть пакет:\n\n"
-        "⚡ <b>Експрес</b> — один готовий варіант.\n"
-        "💎 <b>Преміум</b> — глибша історія, уважне опрацювання та правки.",
+        "⚡ <b>Експрес-пісня — 300 грн</b> — один готовий варіант.\n"
+        "💎 <b>Преміум-пісня — 600 грн</b> — глибша історія, уважне опрацювання та правки.\n"
+        "🎬 <b>Пісня + відеомонтаж — 1500 грн</b> — готова пісня та відео з ваших фото.",
         package_menu(),
     )
     await callback.answer()
@@ -248,7 +250,12 @@ async def collect_media(message: Message, state: FSMContext) -> None:
 
 
 def summary(data: dict) -> str:
-    package = "Експрес" if data.get("package") == "express" else "Преміум"
+    package_names = {
+        "express": "Експрес-пісня — 300 грн",
+        "premium": "Преміум-пісня — 600 грн",
+        "video": "Пісня + відеомонтаж — 1500 грн",
+    }
+    package = package_names.get(data.get("package"), "Не вказано")
     return (
         f"<b>Пакет:</b> {package}\n"
         f"<b>Для кого:</b> {escape(str(data.get('recipient', '')))}\n"
@@ -271,6 +278,47 @@ async def media_done(callback: CallbackQuery, state: FSMContext) -> None:
         callback.message,
         "Перевірте замовлення:\n\n" + summary(data),
         confirm_keyboard(),
+    )
+    await callback.answer()
+
+
+@router.callback_query(Order.confirm, F.data == "submit")
+async def submit_order(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    text = summary(data)
+    with db() as connection:
+        cursor = connection.execute(
+            "INSERT INTO orders(user_id, username, package, answers, status, created_at) VALUES(?,?,?,?,?,?)",
+            (
+                callback.from_user.id,
+                callback.from_user.username or "",
+                data.get("package", ""),
+                text,
+                "new",
+                datetime.now(timezone.utc).isoformat(),
+            ),
+        )
+        order_id = cursor.lastrowid
+    if ADMIN_CHAT_ID:
+        await bot.send_message(
+            ADMIN_CHAT_ID,
+            f"🆕 <b>Нове замовлення №{order_id}</b>\n"
+            f"Клієнт: @{escape(callback.from_user.username or 'без username')}\n"
+            f"User ID: <code>{callback.from_user.id}</code>\n\n{text}\n\n"
+            "Зв’яжіться з клієнтом та надішліть реквізити для оплати.",
+            parse_mode=ParseMode.HTML,
+        )
+        for item in data.get("media", []):
+            try:
+                await bot.copy_message(ADMIN_CHAT_ID, item["chat_id"], item["message_id"])
+            except Exception:
+                log.exception("Could not forward attachment")
+    await state.clear()
+    await safe_edit(
+        callback.message,
+        f"Замовлення №{order_id} надіслано автору ✅\n\n"
+        "Автор зв’яжеться з вами та надішле реквізити для оплати банківським переказом.",
+        main_menu(),
     )
     await callback.answer()
 
