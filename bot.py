@@ -112,9 +112,9 @@ def confirm_keyboard() -> InlineKeyboardMarkup:
 
 async def safe_edit(message: Message, text: str, markup=None) -> None:
     try:
-        await message.edit_text(text, reply_markup=markup)
+        await message.edit_text(text, reply_markup=markup, parse_mode=ParseMode.HTML)
     except Exception:
-        await message.answer(text, reply_markup=markup)
+        await message.answer(text, reply_markup=markup, parse_mode=ParseMode.HTML)
 
 
 @router.message(CommandStart())
