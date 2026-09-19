@@ -313,12 +313,21 @@ async def submit_order(callback: CallbackQuery, state: FSMContext) -> None:
                 await bot.copy_message(ADMIN_CHAT_ID, item["chat_id"], item["message_id"])
             except Exception:
                 log.exception("Could not forward attachment")
+    payment_amounts = {"express": 300, "premium": 600, "video": 1500}
+    amount = payment_amounts.get(data.get("package"), 0)
     await state.clear()
     await safe_edit(
         callback.message,
         f"Замовлення №{order_id} надіслано автору ✅\n\n"
-        "Автор зв’яжеться з вами та надішле реквізити для оплати банківським переказом.",
-        main_menu(),
+        f"До оплати: <b>{amount} грн</b>.\n"
+        "Натисніть кнопку нижче та введіть цю суму на сторінці Monobank.",
+        InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(
+                text="💳 Оплатити через Monobank",
+                url="https://send.monobank.ua/9cm7M78ZRC",
+            )],
+            [InlineKeyboardButton(text="🏠 Головне меню", callback_data="home")],
+        ]),
     )
     await callback.answer()
 
