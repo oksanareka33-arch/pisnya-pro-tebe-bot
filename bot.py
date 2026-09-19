@@ -357,11 +357,16 @@ async def examples(callback: CallbackQuery) -> None:
         "https://vm.tiktok.com/ZN86VfjDc/",
         "https://vm.tiktok.com/ZN86VSrNj/",
         "https://vm.tiktok.com/ZN86V4rrm/",
+        "https://vm.tiktok.com/ZN86bBuW7/",
     ]
     buttons = [
         InlineKeyboardButton(text=f"🎵 Приклад {index}", url=url)
         for index, url in enumerate(example_links, start=1)
     ]
+    buttons[-1] = InlineKeyboardButton(
+        text="🎁 Пісня про Андрія — на замовлення",
+        url=example_links[-1],
+    )
     rows = [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
     rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="home")])
     await safe_edit(
