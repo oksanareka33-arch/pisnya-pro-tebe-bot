@@ -84,6 +84,10 @@ def main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🎁 Замовити персональну пісню", callback_data="order")],
         [InlineKeyboardButton(text="🎧 Послухати приклади", callback_data="examples")],
+        [InlineKeyboardButton(
+            text="🎶 Pré-save « Mais où es-tu donc ? »",
+            url="https://distrokid.com/hyperfollow/ksenarika/mais-o-es-tu-donc-",
+        )],
         [InlineKeyboardButton(text="💬 Зв’язатися з автором", callback_data="contact")],
         [InlineKeyboardButton(text="📦 Моє замовлення", callback_data="my_orders")],
     ])
