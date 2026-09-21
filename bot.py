@@ -19,6 +19,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     LabeledPrice,
     Message,
+    MenuButtonCommands,
     PreCheckoutQuery,
 )
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -471,6 +472,12 @@ async def my_orders(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
+@router.message(Command("menu"))
+async def menu(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    await message.answer("Оберіть потрібний розділ:", reply_markup=main_menu())
+
+
 @router.message(Command("myid"))
 async def my_id(message: Message) -> None:
     await message.answer(f"Ваш Telegram ID: <code>{message.from_user.id}</code>", parse_mode=ParseMode.HTML)
@@ -508,9 +515,11 @@ async def lifespan(_: FastAPI):
         pass
     await bot.set_my_commands([
         BotCommand(command="start", description="Головне меню"),
+        BotCommand(command="menu", description="Відкрити меню"),
         BotCommand(command="myid", description="Дізнатися мій Telegram ID"),
         BotCommand(command="paysupport", description="Підтримка з питань оплати"),
     ])
+    await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
     if WEBHOOK_BASE_URL:
         await bot.set_webhook(
             f"{WEBHOOK_BASE_URL}/webhook",
