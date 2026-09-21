@@ -420,6 +420,7 @@ async def examples(callback: CallbackQuery) -> None:
         "https://vm.tiktok.com/ZN86V4rrm/",
         "https://vm.tiktok.com/ZN86bBuW7/",
         "https://vm.tiktok.com/ZN8MJkknU/",
+        "https://vm.tiktok.com/ZN8MJRCnp/",
     ]
     buttons = [
         InlineKeyboardButton(text=f"🎵 Приклад {index}", url=url)
